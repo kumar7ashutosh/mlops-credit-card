@@ -11,13 +11,14 @@ import os
 import sys
 from src.logger import logging
 
-dagshub_token = os.getenv("CAPSTONE_TEST")
-if not dagshub_token:
-    raise RuntimeError("Missing DagsHub token")
+# dagshub_token = os.getenv("CAPSTONE_TEST")
+# if not dagshub_token:
+#     raise RuntimeError("Missing DagsHub token")
 
-dagshub.auth.add_app_token(dagshub_token)
+# dagshub.auth.add_app_token(dagshub_token)
 
 mlflow.set_tracking_uri('https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow')
+dagshub.init(repo_owner='kumarashutoshbtech2023', repo_name='mlops-credit-card', mlflow=True)
 def load_model(file_path:str):
     with open(file_path,'rb') as file:
         model=pickle.load(file)

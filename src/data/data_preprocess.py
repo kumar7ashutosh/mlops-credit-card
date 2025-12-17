@@ -31,7 +31,7 @@ def main():
     logging.info('test size loaded from %s',params)
     train_data,test_data=preprocess_data(df=df,test_size=test_size)
     save_data(train_data,'data/interim/train.csv')
-    save_data(train_data,'data/interim/test.csv')
+    save_data(test_data,'data/interim/test.csv')
     
 if __name__=='__main__':
     main()

@@ -78,10 +78,10 @@ target/
 # exclude data from source control by default
 # Mac OS-specific storage files
 .DS_Store
-
+*.csv
+local_s3/*
 # vim
 *.swp
 *.swo
-/data/
 # Mypy cache
 .mypy_cache/

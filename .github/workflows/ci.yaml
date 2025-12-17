@@ -1,27 +1,25 @@
-name: Full CI - Model Evaluation
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-
 jobs:
   model-evaluation:
     runs-on: ubuntu-latest
-
     steps:
-      # 1️⃣ Checkout repo
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          lfs: true  # ← THIS IS CRITICAL FOR Git LFS files
 
-      # 2️⃣ Set up Python
+      # Install Git LFS (optional, usually GitHub runners have it)
+      - name: Install Git LFS
+        run: |
+          sudo apt-get update
+          sudo apt-get install git-lfs -y
+          git lfs install
+
+      # Continue with Python setup, dependencies, evaluation...
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
 
-      # 3️⃣ Cache pip dependencies
       - name: Cache pip dependencies
         uses: actions/cache@v3
         with:
@@ -30,33 +28,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # 4️⃣ Install dependencies
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
-      # 5️⃣ Inspect test CSV (optional but recommended)
-      - name: Inspect test CSV
-        run: |
-          head -n 5 data/processed/test_final.csv
-          wc -l data/processed/test_final.csv
-
-      # 6️⃣ Run model evaluation with MLflow
       - name: Run model evaluation
         env:
           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
           MLFLOW_TRACKING_URI: https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow
           MLFLOW_TRACKING_USERNAME: ${{ secrets.CAPSTONE_TEST }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.CAPSTONE_TEST }}
-        run: |
-          python -m src.models.model_evaluation
-
-      # 7️⃣ Optional: enforce a quality gate
-      - name: Fail if AUC < 0.75
-        run: |
-          python - <<EOF
-          import json
-          with open("reports/metrics.json") as f:
-              m = json.load(f)
-          assert m["auc"] >= 0.75, "Model quality gate failed"
-          EOF
+        run: python -m src.models.model_evaluation

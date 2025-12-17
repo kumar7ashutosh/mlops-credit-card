@@ -1,32 +1,25 @@
+name: Full CI - Model Evaluation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 jobs:
   model-evaluation:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout code with LFS
         uses: actions/checkout@v3
         with:
-          lfs: true  # ← THIS IS CRITICAL FOR Git LFS files
+          lfs: true   # ← ensures test_final.csv is downloaded
 
-      # Install Git LFS (optional, usually GitHub runners have it)
-      - name: Install Git LFS
-        run: |
-          sudo apt-get update
-          sudo apt-get install git-lfs -y
-          git lfs install
-
-      # Continue with Python setup, dependencies, evaluation...
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: pip install -r requirements.txt

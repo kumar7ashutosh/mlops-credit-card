@@ -30,4 +30,15 @@ jobs:
           MLFLOW_TRACKING_URI: https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow
           MLFLOW_TRACKING_USERNAME: ${{ secrets.CAPSTONE_TEST }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.CAPSTONE_TEST }}
-        run: python -m src.models.model_evaluation
+        run: |
+          python -m src.models.model_evaluation
+
+      # 7️⃣ Optional: enforce a quality gate
+      - name: Fail if AUC < 0.75
+        run: |
+          python - <<EOF
+          import json
+          with open("reports/metrics.json") as f:
+              m = json.load(f)
+          assert m["auc"] >= 0.75, "Model quality gate failed"
+          EOF

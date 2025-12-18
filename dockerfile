@@ -3,10 +3,10 @@ FROM python:3.10-slim
 WORKDIR /app
 
 COPY flask_app/ /app/
-
 COPY models/power_transformer.pkl /app/models/power_transformer.pkl
+COPY requirements.txt /app/
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --force-reinstall -r requirements.txt
 
 EXPOSE 5000
 

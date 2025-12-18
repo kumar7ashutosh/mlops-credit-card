@@ -6,19 +6,31 @@ on:
       - main
 
 jobs:
-  project-ci:
+  ci:
     runs-on: ubuntu-latest
 
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+
     steps:
+      # -----------------------------
+      # Checkout Repository
+      # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # -----------------------------
+      # Setup Python
+      # -----------------------------
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: Cache pip dependencies
+      # -----------------------------
+      # Cache pip dependencies
+      # -----------------------------
+      - name: Cache pip
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
@@ -26,26 +38,72 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      # -----------------------------
+      # Install dependencies
+      # -----------------------------
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install dvc[s3]
 
-      # 🔑 IMPORTANT FIX
-      - name: Set PYTHONPATH
-        run: |
-          echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-
-      - name: Run DVC pipeline
+      # -----------------------------
+      # Run DVC pipeline
+      # -----------------------------
+      - name: Run DVC Pipeline
         env:
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
         run: |
           dvc repro -f
 
-      - name: Promote model to production
-        if: success()
+      # -----------------------------
+      # Promote Model in MLflow
+      # -----------------------------
+      - name: Promote model to Production
         env:
+          MLFLOW_TRACKING_URI: https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow
           CAPSTONE_TEST: ${{ secrets.CAPSTONE_TEST }}
         run: |
           python scripts/promote_model.py
+
+      # -----------------------------
+      # Login to AWS ECR
+      # -----------------------------
+      - name: Login to AWS ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set region $AWS_REGION
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+      # -----------------------------
+      # Build Docker Image
+      # -----------------------------
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+
+      # -----------------------------
+      # Tag Docker Image
+      # -----------------------------
+      - name: Tag Docker image
+        run: |
+          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+
+      # -----------------------------
+      # Push Docker Image
+      # -----------------------------
+      - name: Push Docker image to ECR
+        run: |
+          docker push \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest

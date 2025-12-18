@@ -4,9 +4,15 @@ import os
 import mlflow
 import dagshub
 def promote_model():
+    dagshub_token = os.getenv("CAPSTONE_TEST")
+    if not dagshub_token:
+        raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
+
+    os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
     mlflow.set_tracking_uri(
     "https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow"
-)
+    )
     dagshub.init(
     repo_owner="kumarashutoshbtech2023",
     repo_name="mlops-credit-card",

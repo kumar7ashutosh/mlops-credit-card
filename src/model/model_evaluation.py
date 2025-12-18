@@ -16,9 +16,14 @@ from src.logger import logging
 #     raise RuntimeError("Missing DagsHub token")
 
 # dagshub.auth.add_app_token(dagshub_token)
+dagshub_token = os.getenv("CAPSTONE_TEST")
+if not dagshub_token:
+    raise EnvironmentError("CAPSTONE_TEST environment variable is not set")
 
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 mlflow.set_tracking_uri('https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow')
-dagshub.init(repo_owner='kumarashutoshbtech2023', repo_name='mlops-credit-card', mlflow=True)
+# dagshub.init(repo_owner='kumarashutoshbtech2023', repo_name='mlops-credit-card', mlflow=True)
 def load_model(file_path:str):
     with open(file_path,'rb') as file:
         model=pickle.load(file)

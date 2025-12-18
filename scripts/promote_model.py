@@ -13,11 +13,11 @@ def promote_model():
     mlflow.set_tracking_uri(
     "https://dagshub.com/kumarashutoshbtech2023/mlops-credit-card.mlflow"
     )
-    dagshub.init(
-    repo_owner="kumarashutoshbtech2023",
-    repo_name="mlops-credit-card",
-    mlflow=True
-    )
+    # dagshub.init(
+    # repo_owner="kumarashutoshbtech2023",
+    # repo_name="mlops-credit-card",
+    # mlflow=True
+    # )
 
     client = mlflow.MlflowClient()
 

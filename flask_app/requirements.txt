@@ -1,0 +1,4 @@
+Flask==3.1.2
+mlflow==2.15.0
+mlflow_skinny==2.15.0
+numpy==1.26.4

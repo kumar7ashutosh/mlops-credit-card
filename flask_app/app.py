@@ -4,6 +4,8 @@ import logging
 import numpy as np
 import mlflow
 from flask import Flask, render_template, request
+from prometheus_client import Counter, Histogram, generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST
+import time
 
 # ---------------------------
 # Logging setup
